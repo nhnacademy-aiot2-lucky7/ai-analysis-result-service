@@ -1,7 +1,8 @@
 package com.nhnacademy.ai_analysis_result_service.analysis_result.domain;
 
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
-import com.nhnacademy.ai_analysis_result_service.analysis_result_sensor_data_mapping.domain.AnalysisResultSensorDataNoMapping;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
+import com.nhnacademy.ai_analysis_result_service.analysis_result_sensor_data_mapping.domain.AnalysisResultSensorDataMapping;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,6 +31,9 @@ public class AnalysisResult {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "department_id")
+    private String departmentId;
+
     /**
      * 분석 타입 (단일 센서, 센서 관계 분석 등)
      */
@@ -44,7 +48,7 @@ public class AnalysisResult {
     private LocalDateTime analyzedAt;
 
     @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AnalysisResultSensorDataNoMapping> analysisResultSensorDataNoMappingList = new ArrayList<>();
+    private List<AnalysisResultSensorDataMapping> analysisResultSensorDataMappingList = new ArrayList<>();
 
     /**
      * 분석 요약 메시지
@@ -71,16 +75,17 @@ public class AnalysisResult {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private AnalysisResult(AnalysisType type, LocalDateTime analyzedAt, List<Long> sensorNos, String resultSummary, String resultJson, String metaJson){
+    private AnalysisResult(AnalysisType type, String departmentId, LocalDateTime analyzedAt, List<SensorInfo> sensorInfos, String resultSummary, String resultJson, String metaJson){
         this.analysisType = type;
+        this.departmentId = departmentId;
         this.analyzedAt = analyzedAt;
-        this.analysisResultSensorDataNoMappingList = sensorNos.stream().map(no -> AnalysisResultSensorDataNoMapping.of(no, this)).toList();
+        this.analysisResultSensorDataMappingList = sensorInfos.stream().map(s -> AnalysisResultSensorDataMapping.of(s.getGatewayId(), s.getSensorId(), s.getSensorType(), this)).toList();
         this.resultSummary = resultSummary;
         this.resultJson = resultJson;
         this.metaJson = metaJson;
     }
 
-    public static AnalysisResult of(AnalysisType type, LocalDateTime analyzedAt, List<Long> sensorNos, String resultSummary, String resultJson, String metaJson) {
-        return new AnalysisResult(type, analyzedAt, sensorNos, resultSummary, resultJson, metaJson);
+    public static AnalysisResult of(AnalysisType type, String departmentId, LocalDateTime analyzedAt, List<SensorInfo> sensorInfos, String resultSummary, String resultJson, String metaJson) {
+        return new AnalysisResult(type, departmentId, analyzedAt, sensorInfos, resultSummary, resultJson, metaJson);
     }
 }

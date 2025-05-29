@@ -18,7 +18,7 @@ public class SensorInfo {
      * 센서를 연결한 게이트웨이의 고유 식별자
      */
     @NotBlank(message = "gateway id 값은 비어있을 수 없습니다.")
-    private String gatewayId;
+    private Long gatewayId;
 
     /**
      * 센서의 고유 식별자

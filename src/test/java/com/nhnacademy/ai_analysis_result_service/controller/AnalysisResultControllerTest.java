@@ -56,7 +56,7 @@ class AnalysisResultControllerTest {
     }
 
     private AnalysisResultSaveRequest<SingleSensorPredictResult> getSingleSensorPredictResult() {
-        SensorInfo sensorInfo = new SensorInfo("gateway id", "sensor id", "sensor type");
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
         String model = "model";
         List<SingleSensorPredictResult.PredictedData> predictedData = new ArrayList<>();
         LocalDateTime analyzedAt = LocalDateTime.now();

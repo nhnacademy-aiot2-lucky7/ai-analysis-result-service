@@ -22,7 +22,7 @@ public interface SensorQueryClient {
      */
     @GetMapping("/sensor-data-mappings/sensor-data-no")
     SensorDataResponse getMappingNo(
-            @RequestParam("gatewayId") String gatewayId,
+            @RequestParam("gatewayId") Long gatewayId,
             @RequestParam("sensorId") String sensorId,
             @RequestParam("sensorType") String sensorType
     );
