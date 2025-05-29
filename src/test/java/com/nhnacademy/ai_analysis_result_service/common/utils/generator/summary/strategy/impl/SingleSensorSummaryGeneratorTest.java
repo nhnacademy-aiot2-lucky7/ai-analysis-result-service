@@ -39,7 +39,7 @@ class SingleSensorSummaryGeneratorTest {
     @Test
     @DisplayName("SingleSensorPredictResult DTO를 기반으로 요약 문자열을 생성한다")
     void generateReturnsSummaryFromSingleSensorPredictResult() {
-        SensorInfo sensorInfo = new SensorInfo("gateway id", "sensor id", "sensor type");
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
         LocalDateTime analyzedAt = LocalDateTime.now();
 
         SingleSensorPredictResult result = new SingleSensorPredictResult(
