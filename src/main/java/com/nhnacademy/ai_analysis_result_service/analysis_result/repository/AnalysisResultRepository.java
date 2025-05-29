@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  * Native SQL 기반으로 분석 결과 DTO를 직접 반환합니다.
  */
 @Repository
-public interface AnalysisResultRepository extends JpaRepository<AnalysisResult, Long> {
+public interface AnalysisResultRepository extends JpaRepository<AnalysisResult, Long>, CustomAnalysisResultRepository {
 
 }
 

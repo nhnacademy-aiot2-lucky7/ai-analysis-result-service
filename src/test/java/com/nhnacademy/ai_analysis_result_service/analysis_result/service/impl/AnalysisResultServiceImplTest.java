@@ -48,7 +48,7 @@ class AnalysisResultServiceImplTest {
     void saveCallsRepositorySaveWhenValidInputGiven() {
         SensorDataResponse sensorDataResponse = new SensorDataResponse(1L);
 
-        when(sensorQueryClient.getMappingNo(anyString(), anyString(), anyString())).thenReturn(sensorDataResponse);
+        when(sensorQueryClient.getMappingNo(anyLong(), anyString(), anyString())).thenReturn(sensorDataResponse);
 
         AnalysisType type = AnalysisType.SINGLE_SENSOR_PREDICT;
         SingleSensorPredictResult result = generateSingleSensorPredictResult();
@@ -70,7 +70,7 @@ class AnalysisResultServiceImplTest {
     }
 
     private SingleSensorPredictResult generateSingleSensorPredictResult() {
-        SensorInfo sensorInfo = new SensorInfo("gateway id", "sensor id", "sensor type");
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
         String model = "model";
         List<SingleSensorPredictResult.PredictedData> predictedData = new ArrayList<>();
         LocalDateTime analyzedAt = LocalDateTime.now();

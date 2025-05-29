@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -23,12 +24,9 @@ import static org.mockito.Mockito.when;
 class SingleSensorListGeneratorTest {
     SensorListGeneratorStrategy<SingleSensorPredictResult> generator;
 
-    @Mock
-    SensorQueryClient client;
-
     @BeforeEach
     void setup() {
-        generator = new SingleSensorListGenerator(client);
+        generator = new SingleSensorListGenerator();
     }
 
     @Test
@@ -47,11 +45,7 @@ class SingleSensorListGeneratorTest {
     @Test
     @DisplayName("SensorInfo를 기반으로 센서 매핑 번호 리스트를 생성한다")
     void generateReturnsSensorDataNoListFromSensorInfo() {
-        SensorDataResponse sensorDataResponse = new SensorDataResponse(1L);
-
-        when(client.getMappingNo(anyString(), anyString(), anyString())).thenReturn(sensorDataResponse);
-
-        SensorInfo sensorInfo = new SensorInfo("gateway id", "sensor id", "sensor type");
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
 
         SingleSensorPredictResult result = new SingleSensorPredictResult(
                 sensorInfo,
@@ -60,10 +54,12 @@ class SingleSensorListGeneratorTest {
                 null
         );
 
-        List<Long> sensorList = generator.generate(result);
+        List<SensorInfo> sensorList = generator.generate(result);
 
         assertNotNull(sensorList);
         assertEquals(1, sensorList.size());
-        assertEquals(1L, sensorList.getFirst());
+        assertEquals(sensorInfo.getGatewayId(), sensorList.getFirst().getGatewayId());
+        assertEquals(sensorInfo.getSensorId(), sensorList.getFirst().getSensorId());
+        assertEquals(sensorInfo.getSensorType(), sensorList.getFirst().getSensorType());
     }
 }

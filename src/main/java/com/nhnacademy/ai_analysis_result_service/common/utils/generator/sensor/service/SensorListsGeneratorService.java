@@ -1,6 +1,7 @@
 package com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.service;
 
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.AnalysisResultDto;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.strategy.SensorListGeneratorStrategy;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.List;
 public class SensorListsGeneratorService {
     private final List<SensorListGeneratorStrategy<?>> strategies;
 
-    public <T extends AnalysisResultDto> List<Long> generate(AnalysisType type, T dto) {
+    public <T extends AnalysisResultDto> List<SensorInfo> generate(AnalysisType type, T dto) {
         return strategies.stream()
                 .filter(strategy -> strategy.supports(type))
                 .map(strategy -> (SensorListGeneratorStrategy<T>) strategy)

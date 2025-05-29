@@ -40,7 +40,7 @@ class SingleSensorMetaGeneratorTest {
     @Test
     @DisplayName("단일 센서 DTO를 JSON 메타 문자열로 직렬화한다")
     void generateReturnsCorrectMetaJsonFromDto() throws Exception {
-        SensorInfo sensorInfo = new SensorInfo("gateway id", "sensor id", "sensor type");
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
         String model = "model";
 
         SingleSensorPredictResult result = new SingleSensorPredictResult(
