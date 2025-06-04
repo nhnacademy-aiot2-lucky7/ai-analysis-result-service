@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface SensorListGeneratorStrategy<T extends AnalysisResultDto> {
     boolean supports(AnalysisType type);
+
     List<SensorInfo> generate(T dto);
 }

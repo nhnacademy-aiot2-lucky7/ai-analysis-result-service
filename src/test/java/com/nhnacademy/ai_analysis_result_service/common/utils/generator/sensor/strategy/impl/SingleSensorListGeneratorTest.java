@@ -3,63 +3,62 @@ package com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
-import com.nhnacademy.ai_analysis_result_service.client.sensor.SensorQueryClient;
-import com.nhnacademy.ai_analysis_result_service.client.sensor.dto.SensorDataResponse;
+import com.nhnacademy.ai_analysis_result_service.common.exception.http.SensorNotFoundException;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.strategy.SensorListGeneratorStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SingleSensorListGeneratorTest {
-    SensorListGeneratorStrategy<SingleSensorPredictResult> generator;
+
+    private SensorListGeneratorStrategy<SingleSensorPredictResult> generator;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         generator = new SingleSensorListGenerator();
     }
 
     @Test
-    @DisplayName("단일 센서 예측 타입을 지원하는지 확인")
-    void supportsReturnsTrueForSingleSensorPredictType() {
-        AnalysisType supportedType = AnalysisType.SINGLE_SENSOR_PREDICT;
-        AnalysisType unsupportedType = null;
-
-        boolean result1 = generator.supports(supportedType);
-        boolean result2 = generator.supports(unsupportedType);
-
-        assertTrue(result1);
-        assertFalse(result2);
+    @DisplayName("SINGLE_SENSOR_PREDICT 타입을 지원하는지 확인")
+    void supports_ReturnsTrueForSupportedType() {
+        assertTrue(generator.supports(AnalysisType.SINGLE_SENSOR_PREDICT));
     }
 
     @Test
-    @DisplayName("SensorInfo를 기반으로 센서 매핑 번호 리스트를 생성한다")
-    void generateReturnsSensorDataNoListFromSensorInfo() {
-        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
+    @DisplayName("다른 AnalysisType은 지원하지 않는지 확인")
+    void supports_ReturnsFalseForUnsupportedType() {
+        assertFalse(generator.supports(AnalysisType.THRESHOLD_DIFF_ANALYSIS));
+    }
 
-        SingleSensorPredictResult result = new SingleSensorPredictResult(
-                sensorInfo,
-                null,
-                null,
-                null
-        );
+    @Test
+    @DisplayName("SensorInfo 기반 센서 리스트 생성 성공")
+    void generate_ReturnsSensorListFromSensorInfo() {
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
+        SingleSensorPredictResult result = new SingleSensorPredictResult(sensorInfo, null, null, null);
 
         List<SensorInfo> sensorList = generator.generate(result);
 
         assertNotNull(sensorList);
         assertEquals(1, sensorList.size());
-        assertEquals(sensorInfo.getGatewayId(), sensorList.getFirst().getGatewayId());
-        assertEquals(sensorInfo.getSensorId(), sensorList.getFirst().getSensorId());
-        assertEquals(sensorInfo.getSensorType(), sensorList.getFirst().getSensorType());
+
+        SensorInfo generatedSensor = sensorList.getFirst();
+        assertEquals(sensorInfo.getGatewayId(), generatedSensor.getGatewayId());
+        assertEquals(sensorInfo.getSensorId(), generatedSensor.getSensorId());
+        assertEquals(sensorInfo.getSensorType(), generatedSensor.getSensorType());
+    }
+
+    @Test
+    @DisplayName("SensorInfo가 없을 경우 SensorNotFoundException 발생")
+    void generate_ThrowsExceptionWhenSensorInfoIsNull() {
+        SingleSensorPredictResult result = new SingleSensorPredictResult(null, null, null, null);
+
+        assertThrows(SensorNotFoundException.class, () -> generator.generate(result));
     }
 }

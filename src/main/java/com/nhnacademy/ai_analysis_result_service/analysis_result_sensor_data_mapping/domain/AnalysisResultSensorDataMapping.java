@@ -30,7 +30,7 @@ public class AnalysisResultSensorDataMapping {
     @JoinColumn(name = "analysis_result_id")
     private AnalysisResult analysisResult;
 
-    public static AnalysisResultSensorDataMapping of(Long gatewayId, String sensorId, String sensorType, AnalysisResult analysisResult){
+    public static AnalysisResultSensorDataMapping of(Long gatewayId, String sensorId, String sensorType, AnalysisResult analysisResult) {
         return new AnalysisResultSensorDataMapping(null, gatewayId, sensorId, sensorType, analysisResult);
     }
 }

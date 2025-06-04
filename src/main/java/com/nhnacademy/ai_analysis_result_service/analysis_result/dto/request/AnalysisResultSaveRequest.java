@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class  AnalysisResultSaveRequest<T extends AnalysisResultDto> {
+public class AnalysisResultSaveRequest<T extends AnalysisResultDto> {
     @Valid
-    private T resultDto;
+    private T result;
 }

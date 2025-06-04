@@ -5,23 +5,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
-import com.nhnacademy.ai_analysis_result_service.common.utils.generator.meta.strategy.impl.SingleSensorMetaGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
-@Import({MetaGeneratorService.class, SingleSensorMetaGenerator.class})
+@SpringBootTest
 class MetaGeneratorServiceTest {
     @Autowired
     MetaGeneratorService metaGeneratorService;
@@ -29,19 +26,16 @@ class MetaGeneratorServiceTest {
     @Test
     @DisplayName("SINGLE_SENSOR_PREDICT 분석 타입의 메타 정보를 JSON으로 생성한다")
     void generateReturnsCorrectMetaJsonForSingleSensorPredictResult() throws Exception {
-        SingleSensorPredictResult result = generateSingleSensorPredictResult();
+        SingleSensorPredictResult result = createTestSingleSensorPredictResult();
 
-        AnalysisType type = AnalysisType.SINGLE_SENSOR_PREDICT;
-
-        String meta = metaGeneratorService.generate(type, result);
+        String meta = metaGeneratorService.generate(AnalysisType.SINGLE_SENSOR_PREDICT, result);
 
         assertNotNull(meta);
 
         ObjectMapper objectMapper = new ObjectMapper();
-
         JsonNode expected = objectMapper.readTree("""
                     {
-                      "gatewayId": "gateway id",
+                      "gatewayId": 1,
                       "sensorId": "sensor id",
                       "sensorType": "sensor type",
                       "model": "model"
@@ -49,38 +43,35 @@ class MetaGeneratorServiceTest {
                 """);
 
         JsonNode actual = objectMapper.readTree(meta);
-
         assertEquals(expected, actual);
     }
 
     @Test
     @DisplayName("지원되지 않는 분석 타입(null)일 경우 예외를 던진다")
     void generateThrowsExceptionWhenAnalysisTypeIsNull() {
-        SingleSensorPredictResult result = generateSingleSensorPredictResult();
-        AnalysisType type = null;
+        SingleSensorPredictResult result = createTestSingleSensorPredictResult();
 
-        assertThrows(IllegalArgumentException.class, () -> metaGeneratorService.generate(type, result));
+        assertThrows(IllegalArgumentException.class, () -> metaGeneratorService.generate(null, result));
     }
 
-    private SingleSensorPredictResult generateSingleSensorPredictResult(){
+    private SingleSensorPredictResult createTestSingleSensorPredictResult() {
         SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
         String model = "model";
         List<SingleSensorPredictResult.PredictedData> predictedData = new ArrayList<>();
-        LocalDateTime analyzedAt = LocalDateTime.now();
+        Long analyzedAt = LocalDateTime.now()
+                .atZone(ZoneId.of("Asia/Seoul"))
+                .toInstant()
+                .toEpochMilli();
 
         for (int i = 0; i < 5; i++) {
-            SingleSensorPredictResult.PredictedData data = new SingleSensorPredictResult.PredictedData(
-                    new Random().nextDouble(10 + i),
-                    LocalDateTime.now().toLocalDate()
-            );
-            predictedData.add(data);
+            double value = 10 + i + new Random().nextDouble();
+            long timestamp = LocalDateTime.now()
+                    .atZone(ZoneId.of("Asia/Seoul"))
+                    .toInstant()
+                    .toEpochMilli();
+            predictedData.add(new SingleSensorPredictResult.PredictedData(value, timestamp));
         }
 
-        return new SingleSensorPredictResult(
-                sensorInfo,
-                model,
-                predictedData,
-                analyzedAt
-        );
+        return new SingleSensorPredictResult(sensorInfo, model, predictedData, analyzedAt);
     }
 }

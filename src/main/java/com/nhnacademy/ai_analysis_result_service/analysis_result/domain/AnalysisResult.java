@@ -45,7 +45,7 @@ public class AnalysisResult {
      * 분석이 수행된 시각
      */
     @Column(name = "analyzed_at")
-    private LocalDateTime analyzedAt;
+    private Long analyzedAt;
 
     @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnalysisResultSensorDataMapping> analysisResultSensorDataMappingList = new ArrayList<>();
@@ -75,7 +75,7 @@ public class AnalysisResult {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private AnalysisResult(AnalysisType type, String departmentId, LocalDateTime analyzedAt, List<SensorInfo> sensorInfos, String resultSummary, String resultJson, String metaJson){
+    private AnalysisResult(AnalysisType type, String departmentId, Long analyzedAt, List<SensorInfo> sensorInfos, String resultSummary, String resultJson, String metaJson) {
         this.analysisType = type;
         this.departmentId = departmentId;
         this.analyzedAt = analyzedAt;
@@ -85,7 +85,7 @@ public class AnalysisResult {
         this.metaJson = metaJson;
     }
 
-    public static AnalysisResult of(AnalysisType type, String departmentId, LocalDateTime analyzedAt, List<SensorInfo> sensorInfos, String resultSummary, String resultJson, String metaJson) {
+    public static AnalysisResult of(AnalysisType type, String departmentId, Long analyzedAt, List<SensorInfo> sensorInfos, String resultSummary, String resultJson, String metaJson) {
         return new AnalysisResult(type, departmentId, analyzedAt, sensorInfos, resultSummary, resultJson, metaJson);
     }
 }

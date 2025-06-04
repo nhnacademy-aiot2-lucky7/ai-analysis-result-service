@@ -3,7 +3,9 @@ package com.nhnacademy.ai_analysis_result_service.client.sensor;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import com.nhnacademy.ai_analysis_result_service.client.sensor.dto.SensorDataResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 센서 매핑 정보를 조회하기 위한 Feign 클라이언트입니다.
@@ -15,8 +17,8 @@ public interface SensorQueryClient {
     /**
      * 게이트웨이 ID, 센서 ID, 센서 타입으로 센서 매핑 번호(sensorDataNo)를 조회합니다.
      *
-     * @param gatewayId 게이트웨이 ID
-     * @param sensorId  센서 ID
+     * @param gatewayId  게이트웨이 ID
+     * @param sensorId   센서 ID
      * @param sensorType 센서 타입
      * @return 센서 매핑 번호를 포함한 응답 DTO
      */

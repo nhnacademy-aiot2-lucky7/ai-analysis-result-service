@@ -13,7 +13,7 @@ import java.util.List;
 public class SummaryGeneratorService {
     private final List<SummaryGeneratorStrategy<?>> strategies;
 
-    public <T extends AnalysisResultDto> String generate(AnalysisType type, T dto){
+    public <T extends AnalysisResultDto> String generate(AnalysisType type, T dto) {
         return strategies.stream()
                 .filter(strategy -> strategy.supports(type))
                 .map(strategy -> (SummaryGeneratorStrategy<T>) strategy)

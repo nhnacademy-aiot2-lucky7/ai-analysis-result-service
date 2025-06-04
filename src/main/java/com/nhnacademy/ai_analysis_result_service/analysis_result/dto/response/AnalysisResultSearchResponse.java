@@ -5,19 +5,17 @@ import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Getter
 @NoArgsConstructor
 public class AnalysisResultSearchResponse {
     private Long id;
     private String departmentId;
     private AnalysisType type;
-    private LocalDateTime analyzedAt;
+    private Long analyzedAt;
     private String resultSummary;
 
     @QueryProjection
-    public AnalysisResultSearchResponse(Long id, String departmentId, AnalysisType type, LocalDateTime analyzedAt, String resultSummary) {
+    public AnalysisResultSearchResponse(Long id, String departmentId, AnalysisType type, Long analyzedAt, String resultSummary) {
         this.id = id;
         this.departmentId = departmentId;
         this.type = type;

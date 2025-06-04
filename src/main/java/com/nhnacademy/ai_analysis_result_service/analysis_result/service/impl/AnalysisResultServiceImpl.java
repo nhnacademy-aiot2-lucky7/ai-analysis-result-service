@@ -8,13 +8,18 @@ import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.Sens
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.SearchCondition;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultSearchResponse;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.RecentResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.AnalysisResultDto;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.repository.AnalysisResultRepository;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.service.AnalysisResultService;
+import com.nhnacademy.ai_analysis_result_service.client.sensor.GatewayQueryClient;
+import com.nhnacademy.ai_analysis_result_service.common.exception.global.JsonDeserializationException;
 import com.nhnacademy.ai_analysis_result_service.common.exception.global.JsonSerializationException;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.AnalysisResultNotFoundException;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.ForbiddenException;
 import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentIdContextHolder;
+import com.nhnacademy.ai_analysis_result_service.common.utils.event.service.EventService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.meta.service.MetaGeneratorService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.service.SensorListsGeneratorService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.summary.service.SummaryGeneratorService;
@@ -25,8 +30,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 분석 결과 저장 및 조회를 처리하는 서비스 구현체입니다.
@@ -42,37 +47,43 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
     private final SummaryGeneratorService summaryGeneratorService;
     private final SensorListsGeneratorService sensorListsGeneratorService;
 
+    private final EventService eventService;
+
     private final AnalysisResultRepository analysisResultRepository;
     private final ObjectMapper objectMapper;
 
+    private final GatewayQueryClient gatewayQueryClient;
+
     @Override
-    public <T extends AnalysisResultDto> void saveAnalysisResult(AnalysisType type, T resultDto){
+    public <T extends AnalysisResultDto> void saveAnalysisResult(AnalysisType type, T resultDto) {
         String resultJson;
-        try{
+        try {
             resultJson = objectMapper.writeValueAsString(resultDto);
-        }catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             throw new JsonSerializationException("result 직렬화 중 에러 발생", e);
         }
 
-        String departmentId = DepartmentIdContextHolder.getDepartmentId();
-        LocalDateTime analyzedAt = resultDto.getAnalyzedAt();
+        Long analyzedAt = resultDto.getAnalyzedAt();
         List<SensorInfo> sensorInfos = sensorListsGeneratorService.generate(type, resultDto);
+        String departmentId = gatewayQueryClient.getDepartment(sensorInfos.getFirst().getGatewayId());
         String resultSummary = summaryGeneratorService.generate(type, resultDto);
         String metaJson = metaGeneratorService.generate(type, resultDto);
 
         AnalysisResult analysisResult = AnalysisResult.of(type, departmentId, analyzedAt, sensorInfos, resultSummary, resultJson, metaJson);
         analysisResultRepository.save(analysisResult);
+        eventService.sendCreateResultEvent(type, resultDto, departmentId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AnalysisResultResponse getAnalysisResult(Long id) {
         AnalysisResultResponse response = analysisResultRepository.findAnalysisResultResponseById(id);
 
-        if(response == null){
+        if (response == null) {
             throw new AnalysisResultNotFoundException();
         }
 
-        if(!response.getDepartmentId().equals(DepartmentIdContextHolder.getDepartmentId())){
+        if (!response.getDepartmentId().equals(DepartmentIdContextHolder.getDepartmentId())) {
             throw new ForbiddenException("결과를 볼 수 있는 권한이 없습니다.");
         }
 
@@ -80,6 +91,33 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
     }
 
     @Override
+    public List<RecentResultResponse> getSingleSensorPredictRecentPredictedData(List<SensorInfo> sensorInfoList) {
+        if (sensorInfoList == null || sensorInfoList.isEmpty()) {
+            throw new IllegalArgumentException("센서 정보가 없습니다.");
+        }
+
+        List<AnalysisResult> analysisResultList = analysisResultRepository.findSingleSensorPredictResult(sensorInfoList);
+
+        return analysisResultList.stream()
+                .map(result -> {
+                    try {
+                        SingleSensorPredictResult singleSensorPredictResult =
+                                objectMapper.readValue(result.getResultJson(), SingleSensorPredictResult.class);
+
+                        return new RecentResultResponse(
+                                singleSensorPredictResult.getSensorInfo(),
+                                singleSensorPredictResult.getPredictedData()
+                        );
+
+                    } catch (JsonProcessingException e) {
+                        throw new JsonDeserializationException("single sensor result 역직렬화 중 에러 발생", e);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable) {
         return analysisResultRepository.searchResults(
                 condition.getAnalysisType(),
