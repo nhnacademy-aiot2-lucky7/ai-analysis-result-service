@@ -7,15 +7,11 @@ import com.nhnacademy.ai_analysis_result_service.common.utils.generator.summary.
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class SingleSensorSummaryGeneratorTest {
+
     SummaryGeneratorStrategy<SingleSensorPredictResult> generator;
 
     @BeforeEach
@@ -24,37 +20,29 @@ class SingleSensorSummaryGeneratorTest {
     }
 
     @Test
-    @DisplayName("단일 센서 예측 타입을 지원하는지 확인")
-    void supportsReturnsTrueForSingleSensorPredictType() {
-        AnalysisType supportedType = AnalysisType.SINGLE_SENSOR_PREDICT;
-        AnalysisType unsupportedType = null;
-
-        boolean result1 = generator.supports(supportedType);
-        boolean result2 = generator.supports(unsupportedType);
-
-        assertTrue(result1);
-        assertFalse(result2);
+    @DisplayName("지원하는 분석 타입 확인: SINGLE_SENSOR_PREDICT 지원, 다른 타입 미지원")
+    void supportsAnalysisTypeTest() {
+        assertTrue(generator.supports(AnalysisType.SINGLE_SENSOR_PREDICT));
+        assertFalse(generator.supports(AnalysisType.THRESHOLD_DIFF_ANALYSIS));
     }
 
     @Test
-    @DisplayName("SingleSensorPredictResult DTO를 기반으로 요약 문자열을 생성한다")
-    void generateReturnsSummaryFromSingleSensorPredictResult() {
-        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
-        LocalDateTime analyzedAt = LocalDateTime.now();
-
-        SingleSensorPredictResult result = new SingleSensorPredictResult(
-                sensorInfo,
-                null,
-                null,
-                analyzedAt
-        );
+    @DisplayName("SingleSensorPredictResult DTO를 기반으로 요약 문자열 생성")
+    void generateSummaryTest() {
+        SingleSensorPredictResult result = createTestSingleSensorPredictResult();
 
         String summary = generator.generate(result);
 
-        String expected = "센서 [%s:%s] (%s)의 예측 분석 결과 (%s)"
-                .formatted("gateway id", "sensor id", "sensor type", analyzedAt.toLocalDate());
+        String expected = "센서 [%d:%s] (%s)의 예측 분석 결과"
+                .formatted(1, "sensor id", "sensor type");
 
         assertNotNull(summary);
         assertEquals(expected, summary);
+    }
+
+    // 공통 테스트 데이터 생성 메서드
+    private SingleSensorPredictResult createTestSingleSensorPredictResult() {
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
+        return new SingleSensorPredictResult(sensorInfo, null, null, null);
     }
 }

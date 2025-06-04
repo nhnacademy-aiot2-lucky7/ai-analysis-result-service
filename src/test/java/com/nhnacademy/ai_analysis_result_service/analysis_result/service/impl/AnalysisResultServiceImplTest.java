@@ -5,89 +5,125 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.AnalysisResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.SearchCondition;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultResponse;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultSearchResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.repository.AnalysisResultRepository;
-import com.nhnacademy.ai_analysis_result_service.client.sensor.SensorQueryClient;
-import com.nhnacademy.ai_analysis_result_service.client.sensor.dto.SensorDataResponse;
-import com.nhnacademy.ai_analysis_result_service.common.exception.global.JsonSerializationException;
-import lombok.extern.slf4j.Slf4j;
+import com.nhnacademy.ai_analysis_result_service.client.sensor.GatewayQueryClient;
+import com.nhnacademy.ai_analysis_result_service.common.exception.http.AnalysisResultNotFoundException;
+import com.nhnacademy.ai_analysis_result_service.common.exception.http.ForbiddenException;
+import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentIdContextHolder;
+import com.nhnacademy.ai_analysis_result_service.common.utils.event.service.EventService;
+import com.nhnacademy.ai_analysis_result_service.common.utils.generator.meta.service.MetaGeneratorService;
+import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.service.SensorListsGeneratorService;
+import com.nhnacademy.ai_analysis_result_service.common.utils.generator.summary.service.SummaryGeneratorService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@Slf4j
+@ExtendWith(MockitoExtension.class)
 class AnalysisResultServiceImplTest {
-    @Autowired
+
+    @Mock MetaGeneratorService metaGeneratorService;
+    @Mock SummaryGeneratorService summaryGeneratorService;
+    @Mock SensorListsGeneratorService sensorListsGeneratorService;
+    @Mock
+    EventService eventService;
+    @Mock AnalysisResultRepository analysisResultRepository;
+    @Mock ObjectMapper objectMapper;
+    @Mock GatewayQueryClient gatewayQueryClient;
+
+    @InjectMocks
     AnalysisResultServiceImpl analysisResultService;
 
-    @MockitoBean
-    AnalysisResultRepository analysisResultRepository;
+    private static final String TEST_DEPARTMENT = "test-dept";
 
-    @MockitoBean
-    SensorQueryClient sensorQueryClient;
-
-    @MockitoSpyBean
-    ObjectMapper objectMapper;
-
-    @Test
-    @DisplayName("SINGLE_SENSOR_PREDICT 분석 결과 저장 시 Repository의 save가 호출된다")
-    void saveCallsRepositorySaveWhenValidInputGiven() {
-        SensorDataResponse sensorDataResponse = new SensorDataResponse(1L);
-
-        when(sensorQueryClient.getMappingNo(anyLong(), anyString(), anyString())).thenReturn(sensorDataResponse);
-
-        AnalysisType type = AnalysisType.SINGLE_SENSOR_PREDICT;
-        SingleSensorPredictResult result = generateSingleSensorPredictResult();
-
-        analysisResultService.saveAnalysisResult(type, result);
-
-        verify(analysisResultRepository, times(1)).save(any(AnalysisResult.class));
+    @BeforeEach
+    void setUp() {
+        DepartmentIdContextHolder.clear();
     }
 
     @Test
-    @DisplayName("ObjectMapper 직렬화 실패 시 JsonSerializationException을 던진다")
-    void saveThrowsJsonSerializationExceptionWhenObjectMapperFails() throws Exception {
-        when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
+    @DisplayName("분석 결과 저장 성공")
+    void saveAnalysisResultTest() throws JsonProcessingException {
+        SingleSensorPredictResult dto = createTestDto();
 
-        AnalysisType type = AnalysisType.SINGLE_SENSOR_PREDICT;
-        SingleSensorPredictResult result = generateSingleSensorPredictResult();
+        when(objectMapper.writeValueAsString(dto)).thenReturn("result-json");
+        when(sensorListsGeneratorService.generate(AnalysisType.SINGLE_SENSOR_PREDICT, dto))
+                .thenReturn(List.of(new SensorInfo(1L, "sensorId", "sensorType")));
+        when(gatewayQueryClient.getDepartment(1L)).thenReturn(TEST_DEPARTMENT);
+        when(summaryGeneratorService.generate(AnalysisType.SINGLE_SENSOR_PREDICT, dto)).thenReturn("summary");
+        when(metaGeneratorService.generate(AnalysisType.SINGLE_SENSOR_PREDICT, dto)).thenReturn("meta");
 
-        assertThrows(JsonSerializationException.class, () -> analysisResultService.saveAnalysisResult(type, result));
+        assertDoesNotThrow(() -> analysisResultService.saveAnalysisResult(AnalysisType.SINGLE_SENSOR_PREDICT, dto));
+        verify(analysisResultRepository).save(any(AnalysisResult.class));
     }
 
-    private SingleSensorPredictResult generateSingleSensorPredictResult() {
-        SensorInfo sensorInfo = new SensorInfo(1L, "sensor id", "sensor type");
-        String model = "model";
-        List<SingleSensorPredictResult.PredictedData> predictedData = new ArrayList<>();
-        LocalDateTime analyzedAt = LocalDateTime.now();
+    @Test
+    @DisplayName("분석 결과 조회 성공")
+    void getAnalysisResultFoundTest() throws Exception {
+        AnalysisResultResponse response = new AnalysisResultResponse();
+        Field did = response.getClass().getDeclaredField("departmentId");
+        did.setAccessible(true);
+        did.set(response, TEST_DEPARTMENT);
+        when(analysisResultRepository.findAnalysisResultResponseById(1L)).thenReturn(response);
 
-        for (int i = 0; i < 5; i++) {
-            SingleSensorPredictResult.PredictedData data = new SingleSensorPredictResult.PredictedData(
-                    new Random().nextDouble(10 + i),
-                    LocalDateTime.now().toLocalDate()
-            );
-            predictedData.add(data);
-        }
+        DepartmentIdContextHolder.setDepartmentId(TEST_DEPARTMENT);
 
-        return new SingleSensorPredictResult(
-                sensorInfo,
-                model,
-                predictedData,
-                analyzedAt
-        );
+        AnalysisResultResponse result = analysisResultService.getAnalysisResult(1L);
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("분석 결과 조회 - 존재하지 않는 ID")
+    void getAnalysisResultNotFoundTest() {
+        when(analysisResultRepository.findAnalysisResultResponseById(1L)).thenReturn(null);
+        assertThrows(AnalysisResultNotFoundException.class, () -> analysisResultService.getAnalysisResult(1L));
+    }
+
+    @Test
+    @DisplayName("분석 결과 조회 - 권한 불일치")
+    void getAnalysisResultForbiddenTest() throws Exception {
+        AnalysisResultResponse response = new AnalysisResultResponse();
+        Field did = response.getClass().getDeclaredField("departmentId");
+        did.setAccessible(true);
+        did.set(response, "not_test_department");
+        when(analysisResultRepository.findAnalysisResultResponseById(1L)).thenReturn(response);
+
+        DepartmentIdContextHolder.setDepartmentId(TEST_DEPARTMENT);
+
+        assertThrows(ForbiddenException.class, () -> analysisResultService.getAnalysisResult(1L));
+    }
+
+    @Test
+    @DisplayName("분석 결과 검색 성공")
+    void searchAnalysisResultsTest() {
+        Page<AnalysisResultSearchResponse> page = new PageImpl<>(List.of());
+        when(analysisResultRepository.searchResults(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
+
+        DepartmentIdContextHolder.setDepartmentId(TEST_DEPARTMENT);
+
+        Page<AnalysisResultSearchResponse> result = analysisResultService.searchAnalysisResults(new SearchCondition(), Pageable.unpaged());
+        assertNotNull(result);
+    }
+
+    // ----------- 더미 DTO 생성 -----------
+    private SingleSensorPredictResult createTestDto() {
+        SensorInfo sensorInfo = new SensorInfo(1L, "sensorId", "sensorType");
+        return new SingleSensorPredictResult(sensorInfo, "model", null, 123L);
     }
 }

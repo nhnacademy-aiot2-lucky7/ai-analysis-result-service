@@ -3,7 +3,6 @@ package com.nhnacademy.ai_analysis_result_service.common.config;
 import com.nhnacademy.ai_analysis_result_service.common.interceptor.ContextInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 

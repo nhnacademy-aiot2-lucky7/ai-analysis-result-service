@@ -19,10 +19,9 @@ public class SingleSensorSummaryGenerator implements SummaryGeneratorStrategy<Si
 
     @Override
     public String generate(SingleSensorPredictResult dto) {
-        return String.format("센서 [%s:%s] (%s)의 예측 분석 결과 (%s)",
+        return String.format("센서 [%s:%s] (%s)의 예측 분석 결과",
                 dto.getSensorInfo().getGatewayId(),
                 dto.getSensorInfo().getSensorId(),
-                dto.getSensorInfo().getSensorType(),
-                dto.getAnalyzedAt().toLocalDate());
+                dto.getSensorInfo().getSensorType());
     }
 }

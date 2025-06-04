@@ -1,13 +1,10 @@
 package com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result;
 
-import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -22,13 +19,13 @@ public class SingleSensorPredictResult implements AnalysisResultDto {
     private SensorInfo sensorInfo;
     private String model;
     private List<PredictedData> predictedData;
-    private LocalDateTime analyzedAt;
+    private Long analyzedAt;
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PredictedData {
         private double predictedValue;
-        private LocalDate predictedDate;
+        private Long predictedDate;
     }
 }

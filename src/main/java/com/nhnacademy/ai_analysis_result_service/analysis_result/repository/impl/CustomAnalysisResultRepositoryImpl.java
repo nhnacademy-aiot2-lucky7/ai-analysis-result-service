@@ -3,13 +3,18 @@ package com.nhnacademy.ai_analysis_result_service.analysis_result.repository.imp
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.AnalysisResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.QAnalysisResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultSearchResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.QAnalysisResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.QAnalysisResultSearchResponse;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.repository.CustomAnalysisResultRepository;
 import com.nhnacademy.ai_analysis_result_service.analysis_result_sensor_data_mapping.domain.QAnalysisResultSensorDataMapping;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,7 +23,7 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -49,8 +54,8 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
     public Page<AnalysisResultSearchResponse> searchResults(
             AnalysisType analysisType,
             String departmentId,
-            LocalDateTime from,
-            LocalDateTime to,
+            Long from,
+            Long to,
             String sensorId,
             Long gatewayId,
             String sensorType,
@@ -100,6 +105,44 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
         return new PageImpl<>(results, pageable, total != null ? total : 0);
     }
 
+    @Override
+    public List<AnalysisResult> findSingleSensorPredictResult(List<SensorInfo> sensorInfo) {
+        QAnalysisResult analysisResult = QAnalysisResult.analysisResult;
+        QAnalysisResultSensorDataMapping mapping = QAnalysisResultSensorDataMapping.analysisResultSensorDataMapping;
+
+        // OR 조건 빌드
+        BooleanExpression sensorConditions = sensorInfo.stream()
+                .map(sensor ->
+                        mapping.sensorId.eq(sensor.getSensorId())
+                                .and(mapping.sensorType.eq(sensor.getSensorType()))
+                                .and(mapping.gatewayId.eq(sensor.getGatewayId()))
+                )
+                .reduce(BooleanExpression::or)
+                .orElse(Expressions.FALSE);  // 안전하게 FALSE로 대체 (절대 null 안 됨)
+
+        // 서브쿼리: 센서별 최신 createdAt 조회
+        JPQLQuery<Tuple> subQuery = queryFactory
+                .select(mapping.sensorId, mapping.sensorType, mapping.gatewayId, analysisResult.createdAt.max())
+                .from(mapping)
+                .join(mapping.analysisResult, analysisResult)
+                .where(
+                        analysisResult.analysisType.eq(AnalysisType.SINGLE_SENSOR_PREDICT)
+                                .and(sensorConditions)
+                )
+                .groupBy(mapping.sensorId, mapping.sensorType, mapping.gatewayId);
+
+        // 메인쿼리: 실제 결과 조회
+        return queryFactory
+                .selectFrom(analysisResult)
+                .join(analysisResult.analysisResultSensorDataMappingList, mapping)
+                .where(
+                        analysisResult.analysisType.eq(AnalysisType.SINGLE_SENSOR_PREDICT),
+                        Expressions.list(mapping.sensorId, mapping.sensorType, mapping.gatewayId, analysisResult.createdAt)
+                                .in(subQuery)
+                )
+                .fetch();
+    }
+
     private BooleanExpression eqAnalysisType(AnalysisType type) {
         return type != null ? QAnalysisResult.analysisResult.analysisType.eq(type) : null;
     }
@@ -108,7 +151,7 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
         return StringUtils.hasText(departmentId) ? QAnalysisResult.analysisResult.departmentId.eq(departmentId) : null;
     }
 
-    private BooleanExpression betweenAnalyzedAt(LocalDateTime from, LocalDateTime to) {
+    private BooleanExpression betweenAnalyzedAt(Long from, Long to) {
         if (from != null && to != null) {
             return QAnalysisResult.analysisResult.analyzedAt.between(from, to);
         } else if (from != null) {

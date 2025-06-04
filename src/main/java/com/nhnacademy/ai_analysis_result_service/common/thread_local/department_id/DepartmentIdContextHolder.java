@@ -7,15 +7,15 @@ import lombok.AllArgsConstructor;
 public class DepartmentIdContextHolder {
     private static final ThreadLocal<String> departmentIdHolder = new ThreadLocal<>();
 
-    public static void setDepartmentId(String departmentId){
+    public static void setDepartmentId(String departmentId) {
         departmentIdHolder.set(departmentId);
     }
 
-    public static String getDepartmentId(){
+    public static String getDepartmentId() {
         return departmentIdHolder.get();
     }
 
-    public static void clear(){
+    public static void clear() {
         departmentIdHolder.remove();
     }
 }

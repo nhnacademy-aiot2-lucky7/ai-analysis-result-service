@@ -5,9 +5,13 @@ import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.Sens
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.SearchCondition;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultSearchResponse;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.RecentResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.AnalysisResultDto;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * 분석 결과 저장 및 조회를 담당하는 서비스 인터페이스.
@@ -25,6 +29,8 @@ public interface AnalysisResultService {
     <T extends AnalysisResultDto> void saveAnalysisResult(AnalysisType type, T resultDto);
 
     AnalysisResultResponse getAnalysisResult(Long id);
+
+    List<RecentResultResponse> getSingleSensorPredictRecentPredictedData(List<SensorInfo> sensorInfoList);
 
     Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable);
 }

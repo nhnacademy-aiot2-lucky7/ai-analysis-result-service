@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +34,12 @@ public class ExceptionHandleAdvice {
     public ResponseEntity<ErrorResponse> handleCommonHttpException(CommonHttpException e) {
         log.warn("CommonHttpException 발생: {}", e.getMessage());
         return ResponseEntity.status(e.getStatusCode()).body(new ErrorResponse(e.getMessage()));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException e) {
+        log.warn("JSON 역직렬화 실패: {}", e.getMessage());
+        return ResponseEntity.badRequest().body(new ErrorResponse("잘못된 요청 형식입니다."));
     }
 
     @ExceptionHandler(Throwable.class)

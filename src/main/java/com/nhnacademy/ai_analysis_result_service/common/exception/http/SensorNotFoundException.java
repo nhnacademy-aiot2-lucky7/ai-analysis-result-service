@@ -17,7 +17,7 @@ public class SensorNotFoundException extends CommonHttpException {
      *
      * @param cause 내부 원인 예외 (예: FeignException)
      */
-    public SensorNotFoundException(Throwable cause){
+    public SensorNotFoundException(Throwable cause) {
         super(STATUS_CODE, MESSAGE, cause);
     }
 }

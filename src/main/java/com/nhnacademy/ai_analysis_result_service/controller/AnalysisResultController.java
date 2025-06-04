@@ -1,10 +1,12 @@
 package com.nhnacademy.ai_analysis_result_service.controller;
 
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.AnalysisResultSaveRequest;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.RecentResultRequest;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.SearchCondition;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultResponse;
-import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.AnalysisResultSaveRequest;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultSearchResponse;
+import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.RecentResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.AnalysisResultDto;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.service.AnalysisResultService;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.InvalidEnumValueException;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/analysis-results")
 @RequiredArgsConstructor
@@ -24,7 +28,7 @@ public class AnalysisResultController {
 
     @PostMapping
     ResponseEntity<Void> saveResult(@RequestBody @Valid AnalysisResultSaveRequest<AnalysisResultDto> request) {
-        AnalysisResultDto dto = request.getResultDto();
+        AnalysisResultDto dto = request.getResult();
         AnalysisType type;
         try {
             type = AnalysisType.valueOf(dto.getType());
@@ -34,6 +38,13 @@ public class AnalysisResultController {
         analysisResultService.saveAnalysisResult(type, dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/single-sensor-predict-recent-result")
+    ResponseEntity<List<RecentResultResponse>> getSingleSensorRecentResult(@RequestBody RecentResultRequest request) {
+        List<RecentResultResponse> response = analysisResultService.getSingleSensorPredictRecentPredictedData(request.getSensorInfo());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

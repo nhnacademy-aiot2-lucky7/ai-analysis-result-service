@@ -5,5 +5,6 @@ import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.Anal
 
 public interface MetaGeneratorStrategy<T extends AnalysisResultDto> {
     boolean supports(AnalysisType type);
+
     String generate(T dto);
 }

@@ -7,15 +7,15 @@ import lombok.AllArgsConstructor;
 public class RoleContextHolder {
     private static final ThreadLocal<String> roleHolder = new ThreadLocal<>();
 
-    public static void setRole(String departmentId){
+    public static void setRole(String departmentId) {
         roleHolder.set(departmentId);
     }
 
-    public static String getRole(){
+    public static String getRole() {
         return roleHolder.get();
     }
 
-    public static void clear(){
+    public static void clear() {
         roleHolder.remove();
     }
 }

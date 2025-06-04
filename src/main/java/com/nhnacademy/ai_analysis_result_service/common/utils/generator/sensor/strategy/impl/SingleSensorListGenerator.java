@@ -3,7 +3,6 @@ package com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.common.SensorInfo;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
-import com.nhnacademy.ai_analysis_result_service.client.sensor.SensorQueryClient;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.SensorNotFoundException;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.strategy.SensorListGeneratorStrategy;
 import lombok.RequiredArgsConstructor;

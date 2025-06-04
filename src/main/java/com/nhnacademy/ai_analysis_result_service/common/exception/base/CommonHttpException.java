@@ -27,7 +27,7 @@ public class CommonHttpException extends RuntimeException {
      * 메시지와 상태 코드를 포함하는 HTTP 예외 생성자
      *
      * @param statusCode HTTP 상태 코드
-     * @param message 예외 메시지
+     * @param message    예외 메시지
      */
     public CommonHttpException(int statusCode, String message) {
         super(message);
@@ -38,8 +38,8 @@ public class CommonHttpException extends RuntimeException {
      * 메시지, 상태 코드, 내부 원인을 포함하는 HTTP 예외 생성자
      *
      * @param statusCode HTTP 상태 코드
-     * @param message 예외 메시지
-     * @param cause 내부 원인 예외
+     * @param message    예외 메시지
+     * @param cause      내부 원인 예외
      */
     public CommonHttpException(int statusCode, String message, Throwable cause) {
         super(message, cause);
