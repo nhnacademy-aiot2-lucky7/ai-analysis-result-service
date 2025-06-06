@@ -72,12 +72,6 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
 
         QAnalysisResult analysisResult = QAnalysisResult.analysisResult;
         QAnalysisResultSensorDataMapping analysisResultSensorDataMapping = QAnalysisResultSensorDataMapping.analysisResultSensorDataMapping;
-        if(departmentId != null){
-            DepartmentResponse response = userQueryClient.getDepartment(departmentId);
-            if(response == null) {
-                throw new ForbiddenException("department 조회 실패");
-            }
-        }
 
         List<AnalysisResultSearchResponse> results = queryFactory
                 .select(new QAnalysisResultSearchResponse(
@@ -117,7 +111,8 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
                 )
                 .fetchOne();
 
-        results.forEach(e -> e.setDepartmentName(response.getDepartmentName()));
+
+        results.forEach(e -> e.setDepartmentName(userQueryClient.getDepartment(e.getDepartmentName()).getDepartmentName()));
 
         return new PageImpl<>(results, pageable, total != null ? total : 0);
     }
