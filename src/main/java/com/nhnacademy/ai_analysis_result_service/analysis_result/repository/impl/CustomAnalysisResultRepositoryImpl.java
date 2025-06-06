@@ -72,10 +72,11 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
 
         QAnalysisResult analysisResult = QAnalysisResult.analysisResult;
         QAnalysisResultSensorDataMapping analysisResultSensorDataMapping = QAnalysisResultSensorDataMapping.analysisResultSensorDataMapping;
-
-        DepartmentResponse response = userQueryClient.getDepartment(departmentId);
-        if(response == null) {
-            throw new ForbiddenException("department 조회 실패");
+        if(departmentId != null){
+            DepartmentResponse response = userQueryClient.getDepartment(departmentId);
+            if(response == null) {
+                throw new ForbiddenException("department 조회 실패");
+            }
         }
 
         List<AnalysisResultSearchResponse> results = queryFactory
