@@ -119,12 +119,6 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
     @Override
     @Transactional(readOnly = true)
     public Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable) {
-        if(condition == null){
-            return analysisResultRepository.searchResults(
-                    null,null,null,null,null,null,null,pageable
-            );
-        }
-
         return analysisResultRepository.searchResults(
                 condition.getAnalysisType(),
                 DepartmentContextHolder.getDepartmentId(),

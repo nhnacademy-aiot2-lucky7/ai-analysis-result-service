@@ -24,7 +24,6 @@ public class ContextInterceptor implements HandlerInterceptor {
         if (encryptedEmail != null) {
             UserResponse user = userQueryClient.getUser(encryptedEmail);
             DepartmentContextHolder.setDepartmentId(user.getDepartment().getDepartmentId());
-            DepartmentContextHolder.setDepartmentName(user.getDepartment().getDepartmentName());
             RoleContextHolder.setRole(user.getUserRole());
         }
         return true;

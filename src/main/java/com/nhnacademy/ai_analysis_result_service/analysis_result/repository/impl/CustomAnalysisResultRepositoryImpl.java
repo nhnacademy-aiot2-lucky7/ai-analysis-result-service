@@ -81,7 +81,7 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
         List<AnalysisResultSearchResponse> results = queryFactory
                 .select(new QAnalysisResultSearchResponse(
                         analysisResult.id,
-                        null,
+                        analysisResult.departmentId,
                         analysisResult.analysisType,
                         analysisResult.analyzedAt,
                         analysisResult.resultSummary

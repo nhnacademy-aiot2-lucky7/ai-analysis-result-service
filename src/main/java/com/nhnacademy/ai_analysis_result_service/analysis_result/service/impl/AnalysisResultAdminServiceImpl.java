@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +29,8 @@ public class AnalysisResultAdminServiceImpl implements AnalysisResultAdminServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable) {
-        if(condition == null){
-            return analysisResultRepository.searchResults(
-                    null,null,null,null,null,null,null,pageable
-            );
-        }
-
         return analysisResultRepository.searchResults(
                 condition.getAnalysisType(),
                 condition.getDepartmentId(),

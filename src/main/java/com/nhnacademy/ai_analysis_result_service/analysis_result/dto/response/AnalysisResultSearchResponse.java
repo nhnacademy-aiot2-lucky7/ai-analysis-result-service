@@ -3,7 +3,6 @@ package com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
