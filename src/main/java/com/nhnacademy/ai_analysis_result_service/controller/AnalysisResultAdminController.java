@@ -1,5 +1,6 @@
 package com.nhnacademy.ai_analysis_result_service.controller;
 
+import com.nhnacademy.ai_analysis_result_service.analysis_result.domain.enums.AnalysisType;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.request.SearchCondition;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultResponse;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.AnalysisResultSearchResponse;
@@ -27,7 +28,19 @@ public class AnalysisResultAdminController {
     }
 
     @GetMapping("/search")
-    Page<AnalysisResultSearchResponse> searchResults(@RequestParam SearchCondition condition, Pageable pageable) {
+    public Page<AnalysisResultSearchResponse> searchResults(
+            @RequestParam(required = false) AnalysisType analysisType,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) Long from,
+            @RequestParam(required = false) Long to,
+            @RequestParam(required = false) String sensorId,
+            @RequestParam(required = false) Long gatewayId,
+            @RequestParam(required = false) String sensorType,
+            Pageable pageable) {
+
+        // SearchCondition 객체를 수동으로 생성하여 전달
+        SearchCondition condition = new SearchCondition(analysisType, departmentId, from, to, sensorId, gatewayId, sensorType);
+
         return analysisResultAdminService.searchAnalysisResults(condition, pageable);
     }
 }
