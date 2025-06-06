@@ -55,7 +55,7 @@ public class AnalysisResultController {
     }
 
     @GetMapping("/search")
-    Page<AnalysisResultSearchResponse> searchResults(SearchCondition condition, Pageable pageable) {
+    Page<AnalysisResultSearchResponse> searchResults(@RequestParam SearchCondition condition, Pageable pageable) {
         return analysisResultService.searchAnalysisResults(condition, pageable);
     }
 }
