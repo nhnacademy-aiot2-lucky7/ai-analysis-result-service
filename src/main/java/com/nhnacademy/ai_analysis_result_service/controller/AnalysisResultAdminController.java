@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CheckRole(RoleType.ROLE_ADMIN)
 @RestController
@@ -30,7 +27,7 @@ public class AnalysisResultAdminController {
     }
 
     @GetMapping("/search")
-    Page<AnalysisResultSearchResponse> searchResults(SearchCondition condition, Pageable pageable) {
+    Page<AnalysisResultSearchResponse> searchResults(@RequestParam SearchCondition condition, Pageable pageable) {
         return analysisResultAdminService.searchAnalysisResults(condition, pageable);
     }
 }
