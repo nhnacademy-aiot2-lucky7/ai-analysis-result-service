@@ -13,7 +13,7 @@ import com.nhnacademy.ai_analysis_result_service.analysis_result.repository.Anal
 import com.nhnacademy.ai_analysis_result_service.client.sensor.GatewayQueryClient;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.AnalysisResultNotFoundException;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.ForbiddenException;
-import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentIdContextHolder;
+import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentContextHolder;
 import com.nhnacademy.ai_analysis_result_service.common.utils.event.service.EventService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.meta.service.MetaGeneratorService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.service.SensorListsGeneratorService;
@@ -54,7 +54,7 @@ class AnalysisResultServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        DepartmentIdContextHolder.clear();
+        DepartmentContextHolder.clear();
     }
 
     @Test
@@ -82,7 +82,7 @@ class AnalysisResultServiceImplTest {
         did.set(response, TEST_DEPARTMENT);
         when(analysisResultRepository.findAnalysisResultResponseById(1L)).thenReturn(response);
 
-        DepartmentIdContextHolder.setDepartmentId(TEST_DEPARTMENT);
+        DepartmentContextHolder.setDepartmentId(TEST_DEPARTMENT);
 
         AnalysisResultResponse result = analysisResultService.getAnalysisResult(1L);
         assertNotNull(result);
@@ -104,7 +104,7 @@ class AnalysisResultServiceImplTest {
         did.set(response, "not_test_department");
         when(analysisResultRepository.findAnalysisResultResponseById(1L)).thenReturn(response);
 
-        DepartmentIdContextHolder.setDepartmentId(TEST_DEPARTMENT);
+        DepartmentContextHolder.setDepartmentId(TEST_DEPARTMENT);
 
         assertThrows(ForbiddenException.class, () -> analysisResultService.getAnalysisResult(1L));
     }
@@ -115,7 +115,7 @@ class AnalysisResultServiceImplTest {
         Page<AnalysisResultSearchResponse> page = new PageImpl<>(List.of());
         when(analysisResultRepository.searchResults(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
-        DepartmentIdContextHolder.setDepartmentId(TEST_DEPARTMENT);
+        DepartmentContextHolder.setDepartmentId(TEST_DEPARTMENT);
 
         Page<AnalysisResultSearchResponse> result = analysisResultService.searchAnalysisResults(new SearchCondition(), Pageable.unpaged());
         assertNotNull(result);

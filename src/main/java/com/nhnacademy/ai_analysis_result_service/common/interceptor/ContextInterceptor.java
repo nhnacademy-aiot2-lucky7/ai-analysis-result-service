@@ -2,7 +2,7 @@ package com.nhnacademy.ai_analysis_result_service.common.interceptor;
 
 import com.nhnacademy.ai_analysis_result_service.client.sensor.UserQueryClient;
 import com.nhnacademy.ai_analysis_result_service.client.sensor.dto.UserResponse;
-import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentIdContextHolder;
+import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentContextHolder;
 import com.nhnacademy.ai_analysis_result_service.common.thread_local.role.RoleContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +23,8 @@ public class ContextInterceptor implements HandlerInterceptor {
         String encryptedEmail = request.getHeader("X-USER-ID");
         if (encryptedEmail != null) {
             UserResponse user = userQueryClient.getUser(encryptedEmail);
-            DepartmentIdContextHolder.setDepartmentId(user.getDepartment().getDepartmentId());
+            DepartmentContextHolder.setDepartmentId(user.getDepartment().getDepartmentId());
+            DepartmentContextHolder.setDepartmentName(user.getDepartment().getDepartmentName());
             RoleContextHolder.setRole(user.getUserRole());
         }
         return true;
@@ -31,7 +32,7 @@ public class ContextInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        DepartmentIdContextHolder.clear();
+        DepartmentContextHolder.clear();
         RoleContextHolder.clear();
     }
 }

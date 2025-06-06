@@ -26,15 +26,6 @@ public class UserResponse {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor
     @Getter
-    public static class DepartmentResponse {
-        private String departmentId;
-
-        private String departmentName;
-    }
-
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor
-    @Getter
     public static class EventLevelResponse {
         private String eventLevelName;
 

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @CheckRole(RoleType.ROLE_ADMIN)
 @RestController
-@RequestMapping("/admin/analysis-result")
+@RequestMapping("/admin/analysis-results")
 @RequiredArgsConstructor
 public class AnalysisResultAdminController {
     private final AnalysisResultAdminService analysisResultAdminService;

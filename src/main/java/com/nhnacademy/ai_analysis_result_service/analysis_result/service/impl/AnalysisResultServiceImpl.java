@@ -18,7 +18,7 @@ import com.nhnacademy.ai_analysis_result_service.common.exception.global.JsonDes
 import com.nhnacademy.ai_analysis_result_service.common.exception.global.JsonSerializationException;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.AnalysisResultNotFoundException;
 import com.nhnacademy.ai_analysis_result_service.common.exception.http.ForbiddenException;
-import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentIdContextHolder;
+import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentContextHolder;
 import com.nhnacademy.ai_analysis_result_service.common.utils.event.service.EventService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.meta.service.MetaGeneratorService;
 import com.nhnacademy.ai_analysis_result_service.common.utils.generator.sensor.service.SensorListsGeneratorService;
@@ -83,7 +83,7 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
             throw new AnalysisResultNotFoundException();
         }
 
-        if (!response.getDepartmentId().equals(DepartmentIdContextHolder.getDepartmentId())) {
+        if (!response.getDepartmentId().equals(DepartmentContextHolder.getDepartmentId())) {
             throw new ForbiddenException("결과를 볼 수 있는 권한이 없습니다.");
         }
 
@@ -121,7 +121,7 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
     public Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable) {
         return analysisResultRepository.searchResults(
                 condition.getAnalysisType(),
-                DepartmentIdContextHolder.getDepartmentId(),
+                DepartmentContextHolder.get(),
                 condition.getFrom(),
                 condition.getTo(),
                 condition.getSensorId(),

@@ -11,11 +11,17 @@ import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.response.QA
 import com.nhnacademy.ai_analysis_result_service.analysis_result.dto.result.SingleSensorPredictResult;
 import com.nhnacademy.ai_analysis_result_service.analysis_result.repository.CustomAnalysisResultRepository;
 import com.nhnacademy.ai_analysis_result_service.analysis_result_sensor_data_mapping.domain.QAnalysisResultSensorDataMapping;
+import com.nhnacademy.ai_analysis_result_service.client.sensor.UserQueryClient;
+import com.nhnacademy.ai_analysis_result_service.client.sensor.dto.DepartmentResponse;
+import com.nhnacademy.ai_analysis_result_service.common.exception.http.ForbiddenException;
+import com.nhnacademy.ai_analysis_result_service.common.thread_local.department_id.DepartmentContextHolder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +35,12 @@ import java.util.List;
 @Repository
 public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySupport implements CustomAnalysisResultRepository {
     private final JPAQueryFactory queryFactory;
+    private final UserQueryClient userQueryClient;
 
-    public CustomAnalysisResultRepositoryImpl(JPAQueryFactory queryFactory) {
+    public CustomAnalysisResultRepositoryImpl(JPAQueryFactory queryFactory, UserQueryClient userQueryClient) {
         super(AnalysisResult.class);
         this.queryFactory = queryFactory;
+        this.userQueryClient = userQueryClient;
     }
 
     @Override
@@ -61,13 +69,19 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
             String sensorType,
             Pageable pageable) {
 
+
         QAnalysisResult analysisResult = QAnalysisResult.analysisResult;
         QAnalysisResultSensorDataMapping analysisResultSensorDataMapping = QAnalysisResultSensorDataMapping.analysisResultSensorDataMapping;
+
+        DepartmentResponse response = userQueryClient.getDepartment(departmentId);
+        if(response == null) {
+            throw new ForbiddenException("department 조회 실패");
+        }
 
         List<AnalysisResultSearchResponse> results = queryFactory
                 .select(new QAnalysisResultSearchResponse(
                         analysisResult.id,
-                        analysisResult.departmentId,
+                        null,
                         analysisResult.analysisType,
                         analysisResult.analyzedAt,
                         analysisResult.resultSummary
@@ -101,6 +115,8 @@ public class CustomAnalysisResultRepositoryImpl extends QuerydslRepositorySuppor
                         eqSensorType(sensorType)
                 )
                 .fetchOne();
+
+        results.forEach(e -> e.setDepartmentName(response.getDepartmentName()));
 
         return new PageImpl<>(results, pageable, total != null ? total : 0);
     }
