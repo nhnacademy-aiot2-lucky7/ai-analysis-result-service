@@ -121,7 +121,7 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
     public Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable) {
         return analysisResultRepository.searchResults(
                 condition.getAnalysisType(),
-                DepartmentContextHolder.get(),
+                DepartmentContextHolder.getDepartmentId(),
                 condition.getFrom(),
                 condition.getTo(),
                 condition.getSensorId(),
