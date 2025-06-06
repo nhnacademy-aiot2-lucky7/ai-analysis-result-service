@@ -29,6 +29,12 @@ public class AnalysisResultAdminServiceImpl implements AnalysisResultAdminServic
 
     @Override
     public Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable) {
+        if(condition == null){
+            return analysisResultRepository.searchResults(
+                    null,null,null,null,null,null,null,pageable
+            );
+        }
+
         return analysisResultRepository.searchResults(
                 condition.getAnalysisType(),
                 condition.getDepartmentId(),
