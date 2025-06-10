@@ -71,7 +71,7 @@ public class AnalysisResultController {
         return analysisResultService.searchAnalysisResults(condition, pageable);
     }
 
-    @GetMapping("/main/{department-id}")
+    @GetMapping("/{department-id}/latest")
     public ResponseEntity<List<AnalysisResultResponse>> getLatestAnalysisResult(
             @PathVariable("department-id") String departmentId
     ) {
