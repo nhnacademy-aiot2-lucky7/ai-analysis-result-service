@@ -70,4 +70,13 @@ public class AnalysisResultController {
 
         return analysisResultService.searchAnalysisResults(condition, pageable);
     }
+
+    @GetMapping("/main/{department-id}")
+    public ResponseEntity<List<AnalysisResultResponse>> getLatestTwo(
+            @PathVariable("department-id") String departmentId
+    ) {
+        List<AnalysisResultResponse> list =
+                analysisResultService.getMainLatest(departmentId);
+        return ResponseEntity.ok(list);
+    }
 }

@@ -33,4 +33,6 @@ public interface AnalysisResultService {
     List<RecentResultResponse> getSingleSensorPredictRecentPredictedData(List<SensorInfo> sensorInfoList);
 
     Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable);
+
+    List<AnalysisResultResponse> getMainLatest(String departmentId);
 }
