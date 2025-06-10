@@ -72,11 +72,11 @@ public class AnalysisResultController {
     }
 
     @GetMapping("/main/{department-id}")
-    public ResponseEntity<List<AnalysisResultResponse>> getLatestTwo(
+    public ResponseEntity<List<AnalysisResultResponse>> getLatestAnalysisResult(
             @PathVariable("department-id") String departmentId
     ) {
         List<AnalysisResultResponse> list =
-                analysisResultService.getMainLatest(departmentId);
+                analysisResultService.getLatestAnalysisResult(departmentId);
         return ResponseEntity.ok(list);
     }
 }

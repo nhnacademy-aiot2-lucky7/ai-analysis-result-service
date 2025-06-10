@@ -34,5 +34,5 @@ public interface AnalysisResultService {
 
     Page<AnalysisResultSearchResponse> searchAnalysisResults(SearchCondition condition, Pageable pageable);
 
-    List<AnalysisResultResponse> getMainLatest(String departmentId);
+    List<AnalysisResultResponse> getLatestAnalysisResult(String departmentId);
 }

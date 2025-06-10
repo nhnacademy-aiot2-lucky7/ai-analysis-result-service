@@ -134,7 +134,7 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AnalysisResultResponse> getMainLatest(String departmentId) {
+    public List<AnalysisResultResponse> getLatestAnalysisResult(String departmentId) {
         // 우리가 관심 있는 두 가지 타입
         List<AnalysisType> wanted = List.of(
                 AnalysisType.SINGLE_SENSOR_PREDICT,
