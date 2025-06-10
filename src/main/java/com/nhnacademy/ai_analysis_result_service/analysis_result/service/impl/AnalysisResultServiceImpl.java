@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -129,5 +130,26 @@ public class AnalysisResultServiceImpl implements AnalysisResultService {
                 condition.getSensorType(),
                 pageable
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnalysisResultResponse> getLatestAnalysisResult(String departmentId) {
+        // 우리가 관심 있는 두 가지 타입
+        List<AnalysisType> wanted = List.of(
+                AnalysisType.SINGLE_SENSOR_PREDICT,
+                AnalysisType.CORRELATION_RISK_PREDICT
+        );
+
+        return wanted.stream()
+                .map(type ->
+                        analysisResultRepository
+                                .findTopByDepartmentIdAndAnalysisTypeOrderByAnalyzedAtDesc(departmentId, type)
+                                .map(AnalysisResult::getId)
+                                .map(this::getAnalysisResult)    // 기존 메소드: id → AnalysisResultResponse
+                                .orElse(null)
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }
